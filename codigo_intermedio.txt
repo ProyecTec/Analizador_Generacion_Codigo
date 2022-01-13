@@ -1,0 +1,447 @@
+package Tarea;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Stack;
+import java.util.regex.Pattern;
+public class codigo {
+	String est = "";
+	variables var;
+
+	Stack<String> pila = new Stack<String>();
+	Map<String, String> variables = new HashMap<String, String>();
+
+	Stack<String> pila_semantica = new Stack<String>();
+
+	String igualacion = "=";
+	String[] tipos_datos = { "int", "float", "char" };
+
+	String[] palabras_clave = { "Fin", "print", "input", "do", "while", "switch", "case", "break", "default" };
+
+	Map<String, String> produccion_eliminar;
+	Map<String, String> produccion;
+
+	String tabla[][] = {
+			// id Int Float Char , ; + - * / ( ) = $ P Tipo V A Exp E Term T F
+
+			{ "I7", "I4", "I5", "I6", "", "", "", "", "", "", "", "", "", "", "I1", "I2", "", "I3", "", "", "", "",
+					"" }, // 0
+			{ "", "", "", "", "", "", "", "", "", "", "", "", "", "P0", "", "", "", "", "", "", "", "", "" }, // 1 solo
+																												// en
+																												// este
+																												// va P0
+			{ "I8", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" }, // 2
+			{ "", "", "", "", "", "", "", "", "", "", "", "", "", "P2", "", "", "", "", "", "", "", "", "" }, // 3
+			{ "P3", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" }, // 4
+			{ "P4", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" }, // 5
+			{ "P5", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" }, // 6
+			{ "", "", "", "", "", "", "", "", "", "", "", "", "I9", "", "", "", "", "", "", "", "", "", "" }, // 7
+			{ "", "", "", "", "I11", "I12", "", "", "", "", "", "", "", "", "", "", "I10", "", "", "", "", "", "" }, // 8
+			{ "I16", "", "", "", "", "", "", "", "", "", "I17", "", "", "", "", "", "", "", "I13", "", "I14", "",
+					"I15" }, // 9
+			{ "", "", "", "", "", "", "", "", "", "", "", "", "", "P1", "", "", "", "", "", "", "", "", "" }, // 10
+			{ "I18", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" }, // 11
+			{ "I7", "I4", "I5", "I6", "", "", "", "", "", "", "", "", "", "", "I19", "I2", "", "I3", "", "", "", "",
+					"" }, // 12
+			{ "", "", "", "", "", "", "", "", "", "", "", "", "", "P8", "", "", "", "", "", "", "", "", "" }, // 13
+			{ "", "", "", "", "", "", "I21", "I22", "", "", "", "P12", "", "P12", "", "", "", "", "", "I20", "", "",
+					"" }, // 14
+			{ "", "", "", "", "", "", "P16", "P16", "I24", "I25", "", "P16", "", "P16", "", "", "", "", "", "", "",
+					"I23", "" }, // 15
+			{ "", "", "", "", "", "", "P17", "P17", "P17", "P17", "", "P17", "", "P17", "", "", "", "", "", "", "", "",
+					"" }, // 16
+			{ "I16", "", "", "", "", "", "", "", "", "", "I17", "", "", "", "", "", "", "", "I26", "", "I14", "",
+					"I15" }, // 17
+			{ "", "", "", "", "I11", "I12", "", "", "", "", "", "", "", "", "", "", "I27", "", "", "", "", "", "" }, // 18
+			{ "", "", "", "", "", "", "", "", "", "", "", "", "", "P7", "", "", "", "", "", "", "", "", "" }, // 19
+			{ "", "", "", "", "", "", "", "", "", "", "", "P9", "", "P9", "", "", "", "", "", "", "", "", "" }, // 20
+			{ "I16", "", "", "", "", "", "", "", "", "", "I17", "", "", "", "", "", "", "", "", "", "I28", "", "I15" }, // 21
+			{ "", "", "", "", "", "", "", "I29", "I24", "I25", "", "P16", "", "P16", "", "", "", "", "", "", "I28",
+					"I23", "" }, // 22
+			{ "", "", "", "", "", "", "P13", "P13", "", "", "", "P13", "", "P13", "", "", "", "", "", "", "", "", "" }, // 23
+			{ "I16", "", "", "", "", "", "", "", "", "", "I17", "", "", "", "", "", "", "", "", "", "", "", "I30" }, // 24
+			{ "I16", "", "", "", "", "", "", "", "", "", "I17", "", "", "", "", "", "", "", "", "", "", "", "I31" }, // 25
+			{ "", "", "", "", "", "", "", "", "", "", "", "I32", "", "", "", "", "", "", "", "", "", "", "" }, // 26
+			{ "", "", "", "", "", "", "", "", "", "", "", "", "", "P6", "", "", "", "", "", "", "", "", "" }, // 27
+			{ "", "", "", "", "", "", "I21", "I22", "", "", "", "P12", "", "P12", "", "", "", "", "", "I33", "", "",
+					"" }, // 28
+			{ "", "", "", "", "", "", "I21", "I22", "", "", "", "P12", "", "P12", "", "", "", "", "", "I34", "", "",
+					"" }, // 29
+			{ "", "", "", "", "", "", "P16", "P16", "I24", "I25", "", "P16", "", "P16", "", "", "", "", "", "", "",
+					"I35", "" }, // 30
+			{ "", "", "", "", "", "", "P16", "P16", "I24", "I25", "", "P16", "", "P16", "", "", "", "", "", "", "",
+					"I36", "" }, // 31
+			{ "", "", "", "", "", "", "P18", "P18", "P18", "P18", "", "P18", "", "P18", "", "", "", "", "", "", "", "",
+					"" }, // 32
+			{ "", "", "", "", "", "", "", "", "", "", "", "P10", "", "P10", "", "", "", "", "", "", "", "", "" }, // 33
+			{ "", "", "", "", "", "", "", "", "", "", "", "P11", "", "P11", "", "", "", "", "", "", "", "", "" }, // 34
+			{ "", "", "", "", "", "", "P14", "P14", "", "", "", "P14", "", "P14", "", "", "", "", "", "", "", "", "" }, // 35
+			{ "", "", "", "", "", "", "P15", "P15", "", "", "", "P15", "", "P15", "", "", "", "", "", "", "", "", "" }, // 36
+	};
+
+	String encabezado[] = { "id", "int", "float", "char", ",", ";", "+", "-", "*", "/", "(", ")", "=", "$", "P", "Tipo",
+			"V", "A", "Exp", "E", "Term", "T", "F" };
+
+	String cad;
+	String[] codigo;
+	String codigo_obj = "#include <stdio.h>\n#include <stdbool.h>\nint main() { \n";
+
+	/* Variables Semantico */
+
+	String edo = "";
+
+	String tipo_actual = "";
+
+	String[] operadores = { "+", "-", "/", "*" };
+//	C -> ==
+//	C -> <
+//	C -> <=
+//	C -> >
+//	C -> >=
+//	C -> !=
+	String[] oper_may = { "/", "*" };
+	String[] oper_men = { "+", "-" };
+
+	String T1 = "";
+	String id_asignar = "";
+	String cod_obj_id_asigna = "";
+
+	Stack<String> pila_signos = new Stack<String>();
+	Stack<String> posfija = new Stack<String>();
+	Stack<String> posfija_tipos = new Stack<String>();
+	Stack<String> pila_oper = new Stack<String>();
+
+	int robin = 0;
+
+	/* Banderas de Semantico */
+
+
+	boolean ban_asignacion = false;
+	boolean ban_declaracion = false;
+
+	/* Terminan banderas de semantico */
+
+	/* Terminan variables semantico */
+	public codigo() {
+		var = new variables();
+		produccion = var.produccion;
+		produccion_eliminar = var.produccion_eliminar;
+
+	}
+
+	public void leer() {
+
+		cad="int a , c ; int res , x , b ; res = ( res * x ) / ( a + b ) :";
+//		cad = "int a , c , b , h ; b = a + ( c * h ) :";
+//		cad = "char a ; a = a :";
+
+		cad += " $";
+		codigo = cad.split(" ");
+	}
+
+	public void Analizar() {
+		pila.push("I0");
+		String entrada = "";
+		int i = 0;
+		int iteraciones = 0;
+
+		int fila = 0;
+		int columna = 0;
+		String lexema = "";
+
+		for (;;) {
+
+			lexema = A_Lexico(codigo[i]);
+//			System.out.println(pila.peek().substring(1, pila.peek().length()));
+			if (!lexema.equals(":")) {
+				fila = Integer.parseInt(pila.peek().substring(1, pila.peek().length()));
+				columna = var.BuscarPos(encabezado, lexema);
+
+				System.out.println("fila: " + fila + " columna:" + columna);
+
+				entrada = tabla[fila][columna];
+				
+			}else {
+				entrada = "I777";
+			}
+			if (entrada.equalsIgnoreCase("P0")) {
+				System.out.println("cadena aceptadisima\n");
+				codigo_obj += "}";
+				System.out.println("El codigo Objeto es:\n" + codigo_obj);
+				System.exit(0);
+			}
+			if (entrada.charAt(0) == 'I') {
+				/* Acciones semanticas */
+
+				if (var.Buscar(tipos_datos, codigo[i])) {
+					codigo_obj += codigo[i] + " ";
+
+				} else if (lexema.equals(";") || lexema.equals(":") ) {
+					// termina de armar posfija con ;
+					if (ban_asignacion) {
+						ArmarPosfija(codigo[i]);
+						if (posfija.size() == 1) {
+							System.out.println("El tamao es uno");
+							String tipo1 = posfija_tipos.pop();
+							if (tipo1.equalsIgnoreCase(variables.get(id_asignar))) {
+								codigo_obj += tipo1 + " var" + (++robin) + " ;\n";
+								codigo_obj += "var" + (robin) + " = " + posfija.pop() + " ;\n";
+							}
+						} else
+							AnalizarPosfija();
+
+						cod_obj_id_asigna += " var" + robin;
+						codigo_obj += cod_obj_id_asigna;
+						cod_obj_id_asigna = "";
+
+						ban_asignacion = false;
+					}
+
+					System.out.println("entro con ;");
+					codigo_obj += " " + codigo[i] + " \n";
+
+					if (ban_declaracion)
+						ban_declaracion = false;
+
+				} else if (ban_asignacion && !lexema.equals("=")) {
+					// Armar posfija
+					System.out.println("entra con : " + codigo[i]);
+					
+					ArmarPosfija(codigo[i]);
+					
+
+				} else if (lexema.equalsIgnoreCase("=")) {
+					cod_obj_id_asigna += codigo[i];
+				} else if (lexema.equalsIgnoreCase("id")) {
+					if (!ban_declaracion)
+						cod_obj_id_asigna += codigo[i] + " ";
+					if (ban_declaracion)
+						codigo_obj += codigo[i] + "";
+				} else if (lexema.equalsIgnoreCase(",")) {
+					codigo_obj += codigo[i];
+				}
+
+				/* primer fin de acciones semanticas */
+
+				if (!lexema.equals(":")) {
+					pila.push(lexema);
+					pila.push(entrada);
+
+					
+				}
+				i++;
+			} else if (entrada.charAt(0) == 'P') {
+
+				System.out.println("reduccion " + entrada);
+				if (entrada.equalsIgnoreCase("P12")) {
+					System.out.println("Entro");
+					pila.push("E");
+
+				} else if (entrada.equalsIgnoreCase("P16")) {
+					System.out.println("entro");
+					pila.push("T");
+				} else {
+					do {
+						pila.pop();
+					} while (!pila.peek().equalsIgnoreCase(produccion_eliminar.get(entrada)));
+				}
+				pila.pop();
+				fila = Integer.parseInt(pila.peek().substring(1, pila.peek().length()));
+				pila.push(produccion.get(entrada));
+				columna = var.BuscarPos(encabezado, pila.peek());
+				entrada = tabla[fila][columna];
+				pila.push(entrada);
+
+			} else {
+				System.out.println("algo salio horriblemente mal " + entrada);
+				System.out.println(lexema);
+				System.exit(0);
+			}
+
+			iteraciones++;
+			if (iteraciones > 500) {
+				System.out.println("Algo salio terriblemente mal");
+				System.exit(0);
+			}
+			System.out.println(pila);
+			System.out.println(variables);
+		}
+
+	}
+
+	public String A_Lexico(String lexema) {
+		System.out.println(lexema);// a
+		if (var.Buscar(palabras_clave, lexema)) {
+
+			return lexema;
+		} else if (var.Buscar(tipos_datos, lexema)) {
+			tipo_actual = lexema;
+			ban_declaracion = true;
+			return lexema;
+		} else if (lexema.equalsIgnoreCase(";")) {
+			tipo_actual = "";
+			return lexema;
+		} else if (var.Variable(lexema)) {
+
+			if (!tipo_actual.isEmpty()) {
+				// declarar variables
+				try {
+					if (!variables.get(lexema).isEmpty()) {// variable ya existe
+
+						System.out.println("la variable " + lexema + " ya está declarada");
+						if (!variables.get(lexema).equalsIgnoreCase(tipo_actual))
+							return "error";
+						return "id";
+					}
+				} catch (Exception e) {
+					// declara variable
+					variables.put(lexema, tipo_actual);
+					return "id";
+				}
+//				return "id";
+			} else {
+				T1 = lexema;
+				return "id";
+			}
+		} else if (Pattern.matches("^[0-9]+", lexema)) {
+			return "num";
+		} else if (Pattern.matches("[+-]?([0-9]*[.])?[0-9]+", lexema)) {
+			return "numf";
+		} else if (Pattern.matches("([\"][^\"]*[\"])", lexema)) {
+			return "palabra";
+		} else if (Pattern.matches("(['][']|['][^']['])", lexema)) {
+			return "caracter";
+		} else if (lexema.equalsIgnoreCase("=")) {
+			id_asignar = T1;
+			ban_asignacion = true;
+			System.out.println("Bandera asignacion___________________________________");
+			System.out.println(codigo_obj);
+			System.out.println("Bandera asignacion___________________________________");
+		}
+		return lexema;
+	}
+
+	public boolean AnalizarPilaSemantica() {
+		System.out.println(pila_semantica + "");
+		do {
+			String tipo1 = pila_semantica.pop();
+			String tipo2 = pila_semantica.pop();
+
+			if (tipo1.equalsIgnoreCase("char") || tipo2.equalsIgnoreCase("char"))
+				return false;
+			else if (tipo1.equalsIgnoreCase(tipo2)) {
+				pila_semantica.push(tipo1);
+			} else
+				return false;
+			System.out.println(pila_semantica + "");
+		} while (pila_semantica.size() > 2);
+
+		return true;
+	}
+
+	public void AnalizarPosfija() {
+		System.out.println("Esta analizando");
+		Stack<String> posfija_volteada = var.Voltear(posfija);
+		Stack<String> posfija_tipos_volteada = var.Voltear(posfija_tipos);
+		try {
+			while (!posfija_volteada.empty()) {
+				if (var.Buscar(operadores, posfija_volteada.peek())) {
+					String var1 = pila_oper.pop();
+					String var2 = pila_oper.pop();
+
+					String tipo1 = posfija_tipos_volteada.pop();
+					String tipo2 = posfija_tipos_volteada.pop();
+
+					if (tipo1.equalsIgnoreCase(tipo2)) {
+						posfija_tipos_volteada.push(tipo2);
+						pila_oper.push("var" + (++robin));
+						variables.put(pila_oper.peek(), tipo2);
+						codigo_obj += tipo2 + " " + pila_oper.peek() + " = " + var2 + " " + posfija_volteada.pop() + " "
+								+ var1 + " ;\n";
+					} else {
+						System.out.println("Errores de tipo de dato");
+					}
+
+				} else {
+					pila_oper.push(posfija_volteada.pop());
+				}
+
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		System.out.println("La pila posfija signos es:\n" + posfija_volteada + "\n===============");
+		System.out.println("La pila posfija es:\n" + posfija_volteada + "\n===============");
+	}
+
+	public void ArmarPosfija(String exp) {
+		// a)
+
+		if (exp.equalsIgnoreCase("(")) {
+			pila_signos.push(exp);
+		} else if (var.NumeroOId(exp)) {// b)
+			posfija.push(exp);
+			if (var.Variable(exp)) {
+				posfija_tipos.push(variables.get(exp));
+			} else {
+				if ((Double.parseDouble(exp) % 1) == 0) {
+					posfija_tipos.push("int");
+				} else {
+					posfija_tipos.push("float");
+				}
+			}
+
+		} else if (var.Buscar(operadores, exp)) {// c)
+
+			if (var.Buscar(oper_may, exp)) {
+				try {
+					while (var.Buscar(oper_may, pila_signos.peek())) {
+						posfija.push(pila_signos.pop());
+					}
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+				pila_signos.push(exp);
+			} else if (var.Buscar(oper_men, exp)) {
+				try {
+					while (var.Buscar(operadores, pila_signos.peek())) {
+						posfija.push(pila_signos.pop());
+					}
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+
+				pila_signos.push(exp);
+			} else
+				System.out.println("mal mal mal");
+
+		} else if (exp.equalsIgnoreCase(")")) {// d)
+			System.out.println("entro aqui++++++++++++++++++++++++++++");
+			try {
+				while (!pila_signos.peek().equalsIgnoreCase("(")) {
+					posfija.push(pila_signos.pop());
+				}
+			} catch (Exception e) {
+
+			}
+
+			pila_signos.pop();
+		} else if (exp.equalsIgnoreCase(";") || exp.equalsIgnoreCase("}") || exp.equalsIgnoreCase(":")) {// e)
+			try {
+				while (!pila_signos.empty()) {
+					posfija.push(pila_signos.pop());
+				}
+			} catch (Error e) {
+
+			}
+		}
+		System.out.println("La pila posfija signos es:\n" + pila_signos + "\n===============");
+		System.out.println("La pila posfija es:\n" + posfija + "\n===============");
+
+	}
+
+	public static void main(String[] args) {
+		codigo obj = new codigo();
+		obj.leer();
+		obj.Analizar();
+	}
+}
