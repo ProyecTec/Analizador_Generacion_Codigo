@@ -1,0 +1,114 @@
+package Tarea;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Stack;
+public class variables {
+	Map<String, String> produccion_eliminar = new HashMap<String, String>();
+	Map<String, String> produccion = new HashMap<String, String>();
+	String var = "[A-z]+[0-9]*[A-z]*";
+	
+	public variables() {
+		produccion_eliminar.put("P0", "P");
+		produccion_eliminar.put("P1", "Tipo");
+		produccion_eliminar.put("P2", "A");
+		produccion_eliminar.put("P3", "int");
+		produccion_eliminar.put("P4", "float");
+		produccion_eliminar.put("P5", "char");
+		produccion_eliminar.put("P6", ",");
+		produccion_eliminar.put("P7", ";");
+		produccion_eliminar.put("P8", "id");
+		produccion_eliminar.put("P9", "Term");
+		produccion_eliminar.put("P10", "+");
+		produccion_eliminar.put("P11", "-");
+		produccion_eliminar.put("P12", "P12");
+		produccion_eliminar.put("P13", "F");
+		produccion_eliminar.put("P14", "*");
+		produccion_eliminar.put("P15", "/");
+		produccion_eliminar.put("P16", "P16");
+		produccion_eliminar.put("P17", "id");
+		produccion_eliminar.put("P18", "(");
+
+		produccion.put("P0", "P'");
+		produccion.put("P1", "P");
+		produccion.put("P2", "P");
+		produccion.put("P3", "Tipo");
+		produccion.put("P4", "Tipo");
+		produccion.put("P5", "Tipo");
+		produccion.put("P6", "V");
+		produccion.put("P7", "V");
+		produccion.put("P8", "A");
+		produccion.put("P9", "Exp");
+		produccion.put("P10", "E");
+		produccion.put("P11", "E");
+		produccion.put("P12", "E");
+		produccion.put("P13", "Term");
+		produccion.put("P14", "T");
+		produccion.put("P15", "T");
+		produccion.put("P16", "T");
+		produccion.put("P17", "F");
+		produccion.put("P18", "F");
+	}
+	public boolean Buscar(String[] vec, String var) {
+		for (int i = 0; i < vec.length; i++) {
+			if (vec[i].equalsIgnoreCase(var)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean NumeroOId(String var) {
+		try {
+			double aux = Double.parseDouble(var);
+			return true;
+		} catch (NumberFormatException e) {
+			if (Variable(var)) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
+
+	public int BuscarPos(String[] vec, String var) {
+		for (int i = 0; i < vec.length; i++) {
+			if (vec[i].equalsIgnoreCase(var)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	public Stack<String> Voltear(Stack<String> vec) {
+		Stack<String> aux = new Stack<String>();
+
+		try {
+			while (true) {
+				aux.push(vec.pop());
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+
+		return aux;
+	}
+
+//	public boolean AnalizarPatternInt(Pattern pat, String cad) {
+//
+//		return false;
+//	}
+//
+//	public boolean AnalizarPattern(Pattern pat, String cad) {
+//
+//	}
+
+	public boolean Variable(String lex) {
+		if (lex.matches(var)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+}
